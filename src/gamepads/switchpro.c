@@ -298,7 +298,7 @@ static int on_rumble(struct udcinput_gamepad_switchpro *switchpro, struct udcinp
 	return 0;
 
 check_fail_inbuf:
-	LOG_DBG("buffer is too small to contain valid rumble data");
+	LOG_ERR("buffer is too small to contain valid rumble data");
 	return -EINVAL;
 }
 
@@ -498,8 +498,8 @@ static void on_rumble_and_subcmd(struct udcinput_gamepad_switchpro *switchpro, i
 		break;
 
 	default:
-		LOG_DBG("Unsupported subcmd id: 0x%02X", id);
-		LOG_HEXDUMP_DBG(buf->data, buf->size);
+		LOG_WRN("Unsupported subcmd id: 0x%02X", id);
+		LOG_HEXDUMP_WRN(buf->data, buf->size);
 
 		udcinput_buf_reset(buf);
 		CHECKG(outbuf, encode_subcmd_response_header(switchpro, buf, 0x80, id));
@@ -517,13 +517,13 @@ check_fail_inbuf:
 	if (locked) {
 		pthread_mutex_unlock(&switchpro->mutex);
 	}
-	LOG_DBG("buffer is too small to be a valid subcmd output report");
+	LOG_ERR("buffer is too small to be a valid subcmd output report");
 	return;
 check_fail_outbuf:
 	if (locked) {
 		pthread_mutex_unlock(&switchpro->mutex);
 	}
-	LOG_DBG("buffer is too small to write a subcmd response");
+	LOG_ERR("buffer is too small to write a subcmd response");
 	return;
 }
 
@@ -532,7 +532,7 @@ static void on_usb_cmd(struct udcinput_gamepad_switchpro *switchpro, int fd,
 {
 	uint8_t id;
 	if (udcinput_buf_pull_u8(buf, &id)) {
-		LOG_DBG("usb cmd buffer is too small");
+		LOG_ERR("usb cmd buffer is too small");
 		return;
 	}
 
@@ -596,14 +596,14 @@ static void on_usb_cmd(struct udcinput_gamepad_switchpro *switchpro, int fd,
 		/* We don't have to send a response. */
 		break;
 	default:
-		LOG_DBG("Unsupported usb cmd id: 0x%02X", id);
-		LOG_HEXDUMP_DBG(buf->data, buf->size);
+		LOG_WRN("Unsupported usb cmd id: 0x%02X", id);
+		LOG_HEXDUMP_WRN(buf->data, buf->size);
 		break;
 	}
 	return;
 
 check_fail_outbuf:
-	LOG_DBG("buffer is too small to write a usb cmd response");
+	LOG_ERR("buffer is too small to write a usb cmd response");
 	return;
 }
 
@@ -613,7 +613,7 @@ static void on_output_report(void *const switchpro_, int fd, struct udcinput_buf
 
 	uint8_t id;
 	if (udcinput_buf_pull_u8(buf, &id)) {
-		LOG_DBG("output report buffer is too small");
+		LOG_ERR("output report buffer is too small");
 		return;
 	}
 
@@ -636,7 +636,7 @@ static void on_output_report(void *const switchpro_, int fd, struct udcinput_buf
 	case OUTPUT_REPORT_RUMBLE: {
 		uint8_t timer;
 		if (udcinput_buf_pull_u8(buf, &timer)) {
-			LOG_DBG("rumble-only packet is too short");
+			LOG_ERR("rumble-only packet is too short");
 			return;
 		}
 
@@ -647,8 +647,8 @@ static void on_output_report(void *const switchpro_, int fd, struct udcinput_buf
 		on_usb_cmd(switchpro, fd, buf);
 		break;
 	default:
-		LOG_DBG("Unsupported output report id: 0x%02X", id);
-		LOG_HEXDUMP_DBG(buf->data, buf->size);
+		LOG_WRN("Unsupported output report id: 0x%02X", id);
+		LOG_HEXDUMP_WRN(buf->data, buf->size);
 		break;
 	}
 }

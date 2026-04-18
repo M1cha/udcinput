@@ -457,13 +457,13 @@ int udcinput_loop_run(struct udcinput_loop *loop, void *user_data,
 
 		if (event.data.fd == loop->datafd) {
 			if (event.events & EPOLLHUP) {
-				LOG_INF("datafd has an epoll hup");
+				LOG_WRN("datafd has an epoll hup");
 				close_datafd(loop, user_data, callbacks);
 				timeout = setup_timeout;
 				continue;
 			}
 			if (event.events & EPOLLERR) {
-				LOG_INF("datafd has an epoll error");
+				LOG_WRN("datafd has an epoll error");
 				close_datafd(loop, user_data, callbacks);
 				timeout = setup_timeout;
 				continue;
@@ -488,7 +488,7 @@ int udcinput_loop_run(struct udcinput_loop *loop, void *user_data,
 				break;
 			}
 			if (event.events & EPOLLIN) {
-				LOG_INF("Stop event reveived");
+				LOG_DBG("Stop event reveived");
 				/* We don't read from it, so the loop will return
 				 * even if we were to poll it again.
 				 */
