@@ -156,4 +156,7 @@ int udcinput_write_string(const char *dirpath, const char *filepath, const char 
 /** @brief Creates a path from the format arguments and calls `mkdir` on it. */
 __attribute__((format(printf, 1, 2))) int udcinput_mkdir_fmt(const char *fmt, ...);
 
+/** @brief Set O_NONBLOCK on @p fd. */
+int udcinput_set_nonblocking(int fd);
+
 #endif /* UDCINPUT_UTIL_H */

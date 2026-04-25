@@ -129,9 +129,9 @@ struct SwitchPro
 		return SwitchPro(switchpro);
 	}
 
-	void set_state(const struct udcinput_gamepad_state &state)
+	bool set_state(const struct udcinput_gamepad_state &state)
 	{
-		udcinput_gamepad_switchpro_set_state(&raw, &state);
+		return udcinput_gamepad_switchpro_set_state(&raw, &state);
 	}
 
 	struct udcinput_loop_callbacks &loop_callbacks()

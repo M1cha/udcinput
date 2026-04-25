@@ -182,3 +182,24 @@ int udcinput_mkdir_fmt(const char *fmt, ...)
 	free(path);
 	return ret;
 }
+
+int udcinput_set_nonblocking(int fd)
+{
+	int ret = fcntl(fd, F_GETFL, 0);
+	if (ret < 0) {
+		ret = -errno;
+		LOG_ERR("failed to get file status flags: %s", strerror(errno));
+		return ret;
+	}
+
+	int flags = ret | O_NONBLOCK;
+
+	ret = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	if (ret < 0) {
+		ret = -errno;
+		LOG_ERR("failed to set file status flags: %s", strerror(errno));
+		return ret;
+	}
+
+	return 0;
+}

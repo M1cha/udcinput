@@ -811,11 +811,16 @@ void udcinput_gamepad_switchpro_destroy(struct udcinput_gamepad_switchpro *switc
 	if (switchpro->fd >= 0) {
 		close(switchpro->fd);
 	}
+	if (switchpro->fd_nonblock >= 0) {
+		close(switchpro->fd_nonblock);
+	}
 }
 
-void udcinput_gamepad_switchpro_set_state(struct udcinput_gamepad_switchpro *switchpro,
+bool udcinput_gamepad_switchpro_set_state(struct udcinput_gamepad_switchpro *switchpro,
 					  const struct udcinput_gamepad_state *state)
 {
+	int ret;
+	bool needs_retry = false;
 	uint8_t buffer[9] = {0};
 
 	if (state->buttons & UDCINPUT_BUTTON_Y) {
@@ -891,17 +896,56 @@ void udcinput_gamepad_switchpro_set_state(struct udcinput_gamepad_switchpro *swi
 
 	if (switchpro->fd < 0) {
 		pthread_mutex_unlock(&switchpro->mutex);
-		return;
+		return false;
 	}
+
+	const bool buttons_changed = memcmp(buffer, &switchpro->input_report[3], 3);
 
 	/* Timer */
 	switchpro->input_report[1] += 1;
 
 	memcpy(&switchpro->input_report[3], buffer, sizeof(buffer));
 
-	udcinput_hidg_write_input_report(switchpro->fd, &buf);
+	if (buttons_changed) {
+		ret = udcinput_hidg_write_input_report(switchpro->fd, &buf);
+		if (ret == -EAGAIN) {
+			LOG_ERR("BUG: blocking fd returned EAGAIN");
+		}
+	} else {
+		ret = udcinput_hidg_write_input_report(switchpro->fd_nonblock, &buf);
+		if (ret == -EAGAIN) {
+			needs_retry = true;
+		}
+	}
 
 	pthread_mutex_unlock(&switchpro->mutex);
+	return needs_retry;
+}
+
+static int open_hidg(struct udcinput_gamepad_switchpro *const switchpro)
+{
+	int fd = udcinput_hidg_open(&switchpro->function);
+	if (fd < 0) {
+		return fd;
+	}
+
+	int fd_nonblock = udcinput_hidg_open(&switchpro->function);
+	if (fd_nonblock < 0) {
+		close(fd);
+		return fd_nonblock;
+	}
+
+	int ret = udcinput_set_nonblocking(fd_nonblock);
+	if (ret) {
+		close(fd_nonblock);
+		close(fd);
+		return ret;
+	}
+
+	switchpro->fd = fd;
+	switchpro->fd_nonblock = fd_nonblock;
+
+	return 0;
 }
 
 static int switchpro_open(void *const switchpro_)
@@ -910,7 +954,7 @@ static int switchpro_open(void *const switchpro_)
 
 	pthread_mutex_lock(&switchpro->mutex);
 	if (switchpro->fd < 0) {
-		switchpro->fd = udcinput_hidg_open(&switchpro->function);
+		open_hidg(switchpro);
 	}
 	pthread_mutex_unlock(&switchpro->mutex);
 
@@ -925,6 +969,10 @@ static void switchpro_close(void *const switchpro_)
 	if (switchpro->fd >= 0) {
 		close(switchpro->fd);
 		switchpro->fd = -1;
+	}
+	if (switchpro->fd_nonblock >= 0) {
+		close(switchpro->fd_nonblock);
+		switchpro->fd_nonblock = -1;
 	}
 	pthread_mutex_unlock(&switchpro->mutex);
 }

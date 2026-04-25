@@ -101,6 +101,7 @@ struct udcinput_gamepad_switchpro {
 
 	pthread_mutex_t mutex;
 	int fd;
+	int fd_nonblock;
 	uint8_t input_report[64];
 
 	const struct udcinput_gamepad_callbacks *callbacks;
@@ -113,7 +114,7 @@ int udcinput_gadget_configure_as_switchpro(struct udcinput_gadget *gadget);
 int udcinput_gamepad_switchpro_create(struct udcinput_gamepad_switchpro *switchpro,
 				      struct udcinput_gadget *gadget);
 void udcinput_gamepad_switchpro_destroy(struct udcinput_gamepad_switchpro *switchpro);
-void udcinput_gamepad_switchpro_set_state(struct udcinput_gamepad_switchpro *switchpro,
+bool udcinput_gamepad_switchpro_set_state(struct udcinput_gamepad_switchpro *switchpro,
 					  const struct udcinput_gamepad_state *state);
 
 #endif /* UDCINPUT_H */

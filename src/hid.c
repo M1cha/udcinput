@@ -88,15 +88,23 @@ int udcinput_hidg_open(const struct udcinput_function *function)
 	return hidgfd;
 }
 
-void udcinput_hidg_write_input_report(int fd, const struct udcinput_buf *buf)
+int udcinput_hidg_write_input_report(int fd, const struct udcinput_buf *buf)
 {
-	int ret = write(fd, buf->data, buf->size);
-	if (ret < 0) {
-		LOG_DBG("Failed to write input report: %s", strerror(errno));
-		return;
+	int ret;
+
+	ssize_t nwritten = write(fd, buf->data, buf->size);
+	if (nwritten < 0) {
+		ret = -errno;
+		if (errno != EAGAIN) {
+			LOG_ERR("Failed to write input report: %s", strerror(errno));
+		}
+		return ret;
 	}
-	if (ret != buf->size) {
-		LOG_DBG("Wrote %d instead of %zu bytes of input report", ret, (size_t)buf->size);
-		return;
+	if ((size_t)nwritten != buf->size) {
+		LOG_ERR("Wrote %zd instead of %zu bytes of input report", nwritten,
+			(size_t)buf->size);
+		return -EIO;
 	}
+
+	return 0;
 }

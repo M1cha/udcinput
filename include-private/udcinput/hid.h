@@ -13,6 +13,6 @@
 int udcinput_hidg_open(const struct udcinput_function *function);
 
 /** @brief Write an input report to @p f */
-void udcinput_hidg_write_input_report(int fd, const struct udcinput_buf *buf);
+int udcinput_hidg_write_input_report(int fd, const struct udcinput_buf *buf);
 
 #endif /* UDCINPUT_HID_H */
