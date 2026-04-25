@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 /** @brief Maximum value a uint12 number can hold. */
-#define UINT12_MAX                     (4095)
+#define UINT12_MAX (4095)
 
 /**
  * @brief Unaligned access
@@ -74,16 +74,16 @@
  * @brief Unsigned integer with bit position @p n set (signed in
  * assembly language).
  */
-#define BIT(n)                 (1UL << (n))
+#define BIT(n) (1UL << (n))
 
 /**
  * @brief Create a contiguous bitmask starting at bit position @p l
  *        and ending at position @p h.
  */
-#define GENMASK(h, l)          (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (__BITS_PER_LONG - 1 - (h))))
+#define GENMASK(h, l) (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (__BITS_PER_LONG - 1 - (h))))
 
 /** @brief Extract the Least Significant Bit from @p value. */
-#define LSB_GET(value)         ((value) & -(value))
+#define LSB_GET(value) ((value) & -(value))
 
 /**
  * @brief Extract a bitfield element from @p value corresponding to
@@ -101,10 +101,10 @@
 	})
 
 /** @brief returns @p c if it evaluates to true. */
-#define CHECK(c)         CHECK_EXEC((c), ({ return ret_check; }))
+#define CHECK(c) CHECK_EXEC((c), ({ return ret_check; }))
 
 /** @brief returns if @p c evaluates to true. */
-#define CHECKV(c)        CHECK_EXEC((c)({ return; }))
+#define CHECKV(c) CHECK_EXEC((c)({ return; }))
 
 /** @brief calls `goto check_fail_##label` if @p c evaluates to true. */
 #define CHECKG(label, c) CHECK_EXEC((c), ({ goto check_fail_##label; }))
